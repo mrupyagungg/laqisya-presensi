@@ -11,7 +11,14 @@ class DashboardController extends Controller
     public function index()
     {
         return view('dashboard.index', [
-            'title' => 'Dashboard',
+            'title' => 'Dashboard Admin',
+            'employees' => Employee::all()
+        ]);
+    }
+    public function index2()
+    {
+        return view('dashboard.index2', [
+            'title' => 'Dashboard Pegawai ',
             'employees' => Employee::all()
         ]);
     }

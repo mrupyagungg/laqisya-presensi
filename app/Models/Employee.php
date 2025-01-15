@@ -18,4 +18,11 @@ class Employee extends Model
         'no_telp'
     ];
 
+
+    public function pembayaranGaji()
+{
+    return $this->hasMany(PembayaranGaji::class, 'id');
+}
+
+
 }

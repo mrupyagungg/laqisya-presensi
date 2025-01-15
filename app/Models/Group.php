@@ -20,5 +20,10 @@ class Group extends Model
     {
         return $this->hasMany(Employee::class);
     }
+    public function pembayaranGaji()
+{
+    return $this->hasMany(PembayaranGaji::class, 'id');
+}
+
 
 }

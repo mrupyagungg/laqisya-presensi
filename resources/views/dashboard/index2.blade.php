@@ -1,4 +1,4 @@
-@extends('layouts.dashboard-adm')
+@extends('layouts.dashboard')
 
 @section('container-dashboard')
 

@@ -11,76 +11,63 @@ use Illuminate\Support\Facades\Validator;
 class LoginController extends Controller
 {
     // Menampilkan halaman registrasi
-    public function showRegistrationForm()
-    {
-        return view('register.index', [
-            'title' => 'Register'
-        ]);
-    }
+   // Menampilkan halaman registrasi
+public function showRegistrationForm()
+{
+    return view('register.index', ['title' => 'Register']);
+}
 
-    // Proses registrasi pengguna
-    public function register(Request $request)
-    {
-        // Validasi input
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'username' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255',
-            'password' => 'required|string',
-        ]);
+// Proses registrasi pengguna
+public function register(Request $request)
+{
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'username' => 'required|string|max:255',
+        'email' => 'required|string|email|max:255|unique:users,email',
+        'password' => 'required|string|min:8|confirmed',
+    ]);
 
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
-        }
+    $user = User::create([
+        'name' => $request->name,
+        'username' => $request->username,
+        'email' => $request->email,
+        'password' => Hash::make($request->password),
+        'role' => 0,
+    ]);
 
-        // Simpan pengguna baru ke database
-        $user = User::create([
-            'name' => $request->name,
-            'username' => $request->username,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+    Auth::login($user);
 
-        // Login otomatis setelah registrasi
-        Auth::login($user);
-
-        // Redirect ke halaman dashboard
-        return redirect()->route('/dashboard')->with('messageSuccess', 'Registration successful. Welcome to the dashboard!');
-    }
+    return redirect('/dashboard')->with('messageSuccess', 'Registrasi berhasil!');
+}
 
     // Menampilkan halaman login
-    public function index()
-    {
-        return view('login.index', [
-            'title' => 'Login'
-        ]);
-    }
+public function index()
+{
+    return view('login.index', ['title' => 'Login']);
+}
 
-    // Proses login pengguna
-    public function authenticate(Request $request)
-    {
-        // Validasi input login
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required']
-        ]);
+public function authenticate(Request $request)
+{
+    $credentials = $request->validate([
+        'email' => 'required|email',
+        'password' => 'required',
+    ]);
 
-        // Coba otentikasi pengguna
-        if (Auth::attempt($credentials)) {
-            // Regenerasi sesi untuk keamanan
-            $request->session()->regenerate();
-            $request->session()->put('email', $request->email);
+    if (Auth::attempt($credentials)) {
+        $request->session()->regenerate();
 
-            return redirect()->intended('/dashboard')->with('messageSuccess', 'Login berhasil!');
+        // Arahkan berdasarkan role
+        if (Auth::user()->role == 1) {
+            return redirect()->intended('/dashboard/index')->with('messageSuccess', 'Selamat datang di Dashboard Admin!');
+        } else {
+            return redirect()->intended('/dashboard/presensi')->with('messageSuccess', 'Selamat datang di Dashboard Presensi!');
         }
-
-        // Login gagal
-        return back()
-            ->withErrors(['email' => 'Email atau password salah!'])
-            ->withInput();
     }
+
+    return back()->withErrors(['email' => 'Email atau password salah!'])->withInput();
+}
+
+
 
     // Proses logout pengguna
     public function logout(Request $request)
@@ -91,6 +78,6 @@ class LoginController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/')->with('messageSuccess', 'Logout berhasil.');
-}
+        return redirect('/login')->with('messageSuccess', 'Logout berhasil.');
+    }
 }
