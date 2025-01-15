@@ -2,8 +2,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\PembayaranGaji;
-use App\Models\Employee; // Pastikan model Pegawai sudah ada
-use App\Models\Group; // Pastikan model Group sudah ada
+use App\Models\Employee;
+use App\Models\Group;
 use Illuminate\Http\Request;
 class PembayaranGajiController extends Controller
 {
@@ -17,42 +17,37 @@ class PembayaranGajiController extends Controller
         return view('pembayaran.index', compact('pembayaran', 'gaji','title'));
     }
 
-     // Menampilkan form tambah data gaji
-     public function create()
-     {
-         $gaji = Employee::all();  // Mendapatkan daftar pegawai
-         return view('pembayaran.create', compact('gaji'));
-     }
-
-    public function store(Request $request)
-    {
-        // Validasi input
-        $request->validate([
-            'id_pegawai' => 'required',
-            'nama_pegawai' => 'required',
-            'jumlah_hadir' => 'required|numeric',
-            'potongan' => 'required|numeric',
-            'bonus' => 'required|numeric',
-            'total' => 'required',
-        ]);
-
-        // Hitung total
-        $pegawai = Group::find($request->id_pegawai);
-        $basicSalary = $pegawai->basic_salary;
-        $total = ($basicSalary * $request->jumlah_hadir) - $request->potongan + $request->bonus;
-
-        // Simpan data pembayaran
-        PembayaranGaji::create([
-            'id_pegawai' => $request->id_pegawai,
-            'nama_pegawai' => $request->nama_pegawai,
-            'jumlah_hadir' => $request->jumlah_hadir,
-            'potongan' => $request->potongan,
-            'bonus' => $request->bonus,
-            'total' => $total,
-        ]);
-
-        return redirect()->route('pembayaran.index')->with('success', 'Pembayaran berhasil ditambahkan');
-    }
+     public function store(Request $request)
+        {
+            $validated = $request->validate([
+                'id_pegawai' => 'required|exists:employees,id', // Pastikan id_pegawai ada di tabel employees
+                'nama_pegawai' => 'required|string',
+                'jumlah_hadir' => 'required|integer|min:0',
+                'potongan' => 'required|numeric|min:0',
+                'bonus' => 'required|numeric|min:0',
+            ]);
+        
+            // Hitung total
+            $pegawai = Group::find($request->id_pegawai);
+            if (!$pegawai) {
+                return redirect()->back()->withErrors(['id_pegawai' => 'Pegawai tidak ditemukan']);
+            }
+            $basicSalary = $pegawai->basic_salary;
+            $total = ($basicSalary * $validated['jumlah_hadir']) - $validated['potongan'] + $validated['bonus'];
+        
+            // Simpan data pembayaran
+            PembayaranGaji::create([
+                'id_pegawai' => $validated['id_pegawai'],
+                'nama_pegawai' => $validated['nama_pegawai'],
+                'jumlah_hadir' => $validated['jumlah_hadir'],
+                'potongan' => $validated['potongan'],
+                'bonus' => $validated['bonus'],
+                'total' => $total,
+            ]);
+        
+            return redirect()->route('pembayaran.index')->with('success', 'Pembayaran berhasil ditambahkan');
+        }
+     
 
     public function edit($id)
     {

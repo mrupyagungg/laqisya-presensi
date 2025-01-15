@@ -10,22 +10,20 @@ class PembayaranGaji extends Model
     use HasFactory;
 
     // Menambahkan kolom baru ke dalam $fillable
-    protected $fillable = [
-        'pegawai_id',      
+    protected $fillable = [      
         'id_pegawai',      
         'nama_pegawai',      
         'jumlah_gaji',     
         'jumlah_hadir',    
         'potongan',        
         'bonus',           
-        'total',            
-        'tanggal_pembayaran',
+        'total',
     ];
 
      // Relasi ke Employee (Pegawai)
      public function employee()
      {
-         return $this->belongsTo(Employee::class, 'id_pegawai');  // Gunakan 'id_pegawai' yang sesuai dengan nama foreign key
+         return $this->belongsTo(Employee::class, 'id');  // Gunakan 'id_pegawai' yang sesuai dengan nama foreign key
      }
 
     // Relasi dengan model Group (Jika ada relasi ke grup)
