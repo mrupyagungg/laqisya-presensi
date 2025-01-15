@@ -37,7 +37,7 @@ public function register(Request $request)
 
     Auth::login($user);
 
-    return redirect('/dashboard')->with('messageSuccess', 'Registrasi berhasil!');
+    return redirect('/dashboard/index2')->with('messageSuccess', 'Registrasi berhasil!');
 }
 
     // Menampilkan halaman login
@@ -60,7 +60,7 @@ public function authenticate(Request $request)
         if (Auth::user()->role == 1) {
             return redirect()->intended('/dashboard/index')->with('messageSuccess', 'Selamat datang di Dashboard Admin!');
         } else {
-            return redirect()->intended('/dashboard/presensi')->with('messageSuccess', 'Selamat datang di Dashboard Presensi!');
+            return redirect()->intended('/dashboard/index2')->with('messageSuccess', 'Selamat datang di Dashboard Presensi!');
         }
     }
 
